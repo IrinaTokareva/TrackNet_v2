@@ -9,16 +9,16 @@ import sys
 
 sys.path.append(os.path.realpath('.'))
 
-from src.losses import custom_loss
-from src.metrics import point_in_ellipse
-from src.metrics import point_in_ellipse_numpy
-from src.metrics import circle_area
-from src.data_utils import sample_vertices
-from src.data_utils import read_vertex_file
+from losses import custom_loss
+from metrics import point_in_ellipse
+from metrics import point_in_ellipse_numpy
+from metrics import circle_area
+from data_utils import sample_vertices
+from data_utils import read_vertex_file
 from tensorflow.keras.models import load_model
-from src.visualizer import Visualizer, revert_types
-from src.data_utils import sample_vertices
-from src.metrics import point_in_ellipse_numpy
+from visualizer import Visualizer, revert_types
+from data_utils import sample_vertices
+from metrics import point_in_ellipse_numpy
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -42,7 +42,7 @@ def dropBroken(df, preserve_fakes = True, drop_full_tracks = False):
     )
     if drop_full_tracks:
         ret = ret.groupby('track', as_index=False).filter(
-        lambda x: x.station.nunique() < 6 or preserve_fakes and x.track.values[0] == -1)
+            lambda x: x.station.nunique() < 6 or preserve_fakes and x.track.values[0] == -1)
     return ret
 
 def getEvents(config_df, hits_df):
@@ -91,6 +91,7 @@ def get_nn(nn_config):
         "_tracknet_loss": custom_loss,
         "point_in_ellipse": point_in_ellipse,
         "circle_area": circle_area}
+    print("PATH" + path_to_model)
     return load_model(path_to_model, custom_objects=custom_objects)
 
 def get_seeds_with_index_with_vertex(hits, vertex_stats, stations_z):

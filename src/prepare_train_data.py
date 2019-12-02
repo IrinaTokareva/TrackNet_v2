@@ -6,9 +6,9 @@ import sys
 
 sys.path.append(os.path.realpath('.'))
 
-from src.data_utils import read_train_dataset
-from src.data_utils import train_test_split
-from src.data_utils import get_dataset
+from data_utils import read_train_dataset
+from data_utils import train_test_split
+from data_utils import get_dataset
 
 
 def load_config(config_file):
@@ -36,7 +36,7 @@ def main(config_path='configs/prepare_train_data_equal_distribution.yaml',
 
     print("Read train data")
     train_data = read_train_dataset(
-        train_dir, 
+        train_dir,
         vertex_fname=vertex,
         random_seed=random_seed,
         debug=debug,
@@ -46,7 +46,7 @@ def main(config_path='configs/prepare_train_data_equal_distribution.yaml',
     train, validation = train_test_split(
         train_data,
         shuffle=False,
-        test_size=val_size, 
+        test_size=val_size,
         random_seed=random_seed)
     print("\nTrain shape: {}".format(train.shape))
     print("\nValidation shape: {}".format(validation.shape))
@@ -58,7 +58,7 @@ def main(config_path='configs/prepare_train_data_equal_distribution.yaml',
     print("\nPrepare data as input to NN")
     train = get_dataset(train, shuffle=False, random_seed=random_seed)
     validation = get_dataset(validation, shuffle=False, random_seed=random_seed)
-    
+
     print("\nSave to the file `%s`" % fname_to_save)
     np.savez(fname_to_save,
              x_train=train[0],

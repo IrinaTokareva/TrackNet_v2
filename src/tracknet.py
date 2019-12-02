@@ -1,57 +1,34 @@
-import tensorflow as tf
+import torch
+import torch.nn as nn
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Conv1D
-from tensorflow.keras.layers import GRU
-from tensorflow.keras.layers import CuDNNGRU
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Masking
-from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import TimeDistributed
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import GlobalAveragePooling1D
-from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.activations import softplus
+from torch.autograd import Variable
 
 
-def tracknet_builder(n_features):
-    '''Build TrackNet_v2 model based on the input_shape
+class TrackNet(nn.Module):
+    def __init__(self):
+        super(TrackNet, self).__init__()
 
-    # Arguments
-        input_shape : the size of the input tensor
-            input tensor [N, D] 
-            N = sequence length, 
-            D = 4 - x, y, z, z+1 coords 
-    
-    # Returns 
-        Keras Model 
-    '''
-    # TODO: check for GPU
-    gru = GRU
-    # if GPU, switch to gpu version
-    if tf.test.is_gpu_available():
-        gru = CuDNNGRU
+        # TODO: some changes if GPU is available?
 
-    # `None` means that an input sequence can be an arbitrary length
-    input_shape = (None, n_features)
-    inputs = Input(shape=input_shape, name="inputs")
-    # encode each timestep independently skipping zeros strings
-    # timesteps encoder layer
-    x = Conv1D(32, 3, padding='same', name="conv1d")(inputs)
-    x = BatchNormalization(name='batch_norm')(x)
-    x = Activation('relu', name='conv1d_relu')(x)
-    # recurrent layers
-    x = gru(32, return_sequences=True, name="gru1")(x)
-    x = gru(16, name="gru2")(x)
-    # outputs
-    # x and y coords - centre of observing
-    # area on the next station
-    xy_coords = Dense(2, activation='linear', name="xy_coords")(x)
-    # ellipse radii
-    r1_r2 = Dense(2, activation=softplus, name="r1_r2")(x)
-    outputs = Concatenate(name="outputs")([xy_coords, r1_r2])
-    # create model
-    tracknet = Model(inputs, outputs, name="TrackNet_v2")
-    return tracknet
+        self.conv1d = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=3, padding=1)
+        self.batch_norm = nn.BatchNorm1d(32)
+        self.conv1d_relu = nn.ReLU()
+        self.gru1 = nn.GRU(input_size=32, hidden_size=32)
+        self.gru2 = nn.GRU(input_size=32, hidden_size=16)
+        self.linear1 = nn.Linear(16, 2)
+        self.linear2 = nn.Linear(16, 2)
+        self.softplus = nn.Softplus()
+
+    def forward(self, x):
+        x = self.conv1d(x)
+        x = self.batch_norm(x)
+        x = self.conv1d_relu(x)
+        x = Variable(x.permute(2, 0, 1))
+        x, hn = self.gru1(x)
+        x, hn = self.gru2(x)
+        x = x[x.size()[0] - 1]
+        xy_coords = self.linear1(x)
+        x = self.linear2(x)
+        r1_r2 = self.softplus(x)
+        result = torch.cat((xy_coords, r1_r2), dim=1)
+        return result

@@ -1,5 +1,5 @@
 # Path to the data npz file
-data_path: data/train_dataset_vertex_eq_dist.npz
+data_path: ../data/train_dataset_vertex_eq_dist.npz
 
 # Random seed
 random_seed: 13

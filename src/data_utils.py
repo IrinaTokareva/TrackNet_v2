@@ -8,7 +8,7 @@ from glob import glob
 from tqdm import tqdm
 tqdm.pandas()
 
-from src.timing import timeit
+from timing import timeit
 
 
 def read_vertex_file(path):
@@ -20,12 +20,12 @@ def sample_vertices(vertex_stats, n, random_seed=None):
     rs = np.random.RandomState(seed=random_seed)
     # sample vertex X coordinate
     vertex_x = rs.normal(
-        loc=vertex_stats['x']['mean'], 
+        loc=vertex_stats['x']['mean'],
         scale=vertex_stats['x']['std'],
         size=(n, 1))
     # sample vertex Y coordinate
     vertex_y = rs.normal(
-        loc=vertex_stats['y']['mean'], 
+        loc=vertex_stats['y']['mean'],
         scale=vertex_stats['y']['std'],
         size=(n, 1))
     # sample vertex Z coordinate
@@ -78,13 +78,13 @@ def get_tracks_with_vertex(df, vertex_stats=None, random_seed=13, train_split=No
 
     # get tracks
     tracks = groupby[['x', 'y', 'z', 'station']].progress_apply(pd.Series.tolist)
-    
+
     # fill result array
     ind = 0
     broken_cnt = [0]*(n_stations + 1)
     #if bins:
-        # TODO: shuffle with info about track_id and event_id
-        #np.random.RandomState(seed=random_seed).shuffle(tracks.values)
+    # TODO: shuffle with info about track_id and event_id
+    #np.random.RandomState(seed=random_seed).shuffle(tracks.values)
     if bins:
         copy_bins = np.copy(bins)
     copy_start = 0 if vertex_stats is None else 1
@@ -116,7 +116,7 @@ def get_tracks_with_vertex(df, vertex_stats=None, random_seed=13, train_split=No
     print("\n Total tracks:", (copy_bins if bins else groupby.size().value_counts()))
     print(" Total broken tracks:", broken_cnt, '\n')
     return res
-    
+
 
 @timeit
 def read_train_dataset(dirpath, vertex_fname=None, random_seed=13, debug=False, train_split=None):
@@ -277,7 +277,7 @@ def split_on_buckets(X, shuffle=False, random_seed=None):
                 # remove all data from the original list
                 subbuckets[k] = []
                 # decrement index
-                k -= 1   
+                k -= 1
 
     return buckets, bsize*len(buckets)
 
@@ -312,5 +312,5 @@ def get_dataset(X, shuffle=False, random_seed=None):
     # shuffle arrays
     if shuffle:
         inputs, target = shuffle_arrays(inputs, target, random_seed=random_seed)
-    
+
     return (inputs, target)

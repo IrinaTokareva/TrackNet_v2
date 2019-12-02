@@ -8,7 +8,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 
-from src.timing import timeit
+from timing import timeit
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 tqdm.pandas()
@@ -39,8 +39,8 @@ def brute_force_1nn(x, y, return_distance=False):
     return indices
 
 
-def match_hits_to_mc_points(event_id, 
-                            event_data, 
+def match_hits_to_mc_points(event_id,
+                            event_data,
                             event_mc,
                             verbose=False):
     '''For each hit finds the most closest Monte-Carlo
@@ -99,7 +99,7 @@ def read_mc_file(mc_fpath, sep='\t', index_col=None, encoding='utf-8'):
     usecols = ['event', 'track', 'x_in', 'y_in', 'z_in', 'station']
     dtypes = [np.int32, np.int32, np.float32, np.float32, np.float32, np.int32]
     # read dataframe
-    df = pd.read_csv(mc_fpath, sep=sep, encoding=encoding, index_col=index_col, 
+    df = pd.read_csv(mc_fpath, sep=sep, encoding=encoding, index_col=index_col,
                      usecols=usecols, dtype=dict(zip(usecols, dtypes)))
     # rename columns
     df = df.rename(columns={'x_in': 'x', 'y_in': 'y', 'z_in': 'z'})
@@ -113,14 +113,14 @@ def read_hits_file(hits_fpath, sep='\t', index_col=0, encoding='utf-8'):
     # Return
         pandas.DataFrame{event, x, y, z, station}
     '''
-    return pd.read_csv(hits_fpath, 
-                       sep=sep, 
-                       encoding=encoding, 
-                       index_col=index_col, 
-                       dtype={'event': np.int32, 
-                              'x': np.float32, 
-                              'y': np.float32, 
-                              'z': np.float32, 
+    return pd.read_csv(hits_fpath,
+                       sep=sep,
+                       encoding=encoding,
+                       index_col=index_col,
+                       dtype={'event': np.int32,
+                              'x': np.float32,
+                              'y': np.float32,
+                              'z': np.float32,
                               'station': np.int32})
 
 
@@ -138,7 +138,7 @@ def drop_short_tracks(mc_df, hits_df, n_points=3):
     removed_events = set(hits_df.event) - set(mc_df.event)
     hits_df = hits_df[~hits_df.event.isin(removed_events)]
     return mc_df, hits_df
-    
+
 
 @timeit
 def drop_spinning_tracks(mc_df, n_points=1):
@@ -186,7 +186,7 @@ def label_hits(mc_df, hits_df):
 
     # create dataframe
     hits_with_track_id_df = pd.DataFrame(hits_with_track_id,
-        columns=['event', 'x', 'y', 'z', 'station', 'track'])
+                                         columns=['event', 'x', 'y', 'z', 'station', 'track'])
 
     # data types conversion
     hits_with_track_id_df = hits_with_track_id_df.astype({
@@ -221,7 +221,7 @@ def merge_mc_with_hits(mc_fpath, hits_fpath):
     print("4. Set labels to hits")
     hits_with_track_id_df = label_hits(mc_df, hits_df)
     print("Event number: %d" % hits_with_track_id_df.event.nunique())
-    
+
     return hits_with_track_id_df
 
 
