@@ -45,7 +45,6 @@ def train(tracknet, train_loader, device, optimizer, epoch):
         print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}, point_in_ellipse: {:.4f}, circle_area: {:.4f}'.format(
             epoch + 1, (batch_idx + 1) * len(x), len(train_loader.dataset),
             100. * batch_idx / len(train_loader), loss.item(), hits_efficiency, torch.mean(circle)))
-    return hits_efficiency
 
 
 def validate(tracknet, validation_loader, device):
@@ -100,7 +99,7 @@ def main(config_path='../configs/train_init.yaml'):
     print("Validation size: %d" % len(data['x_val']))
 
     train_loader = create_data_loader(data['x_train'], data['y_train'], batch_size)
-    validation_loader = create_data_loader(data['x_val'], data['y_val'], batch_size)
+    validation_loader = create_data_loader(data['x_val'], data['y_val'], 2048)
 
     tracknet = TrackNet()
     print(tracknet)
@@ -117,14 +116,14 @@ def main(config_path='../configs/train_init.yaml'):
     metrics_cb.on_train_begin()
     datetime = strftime("_%Y-%m-%d__%H.%M.%S", gmtime())
     for epoch in range(epochs):
-        hits_efficiency = train(tracknet, train_loader, device, optimizer, epoch)
-        if (1 - hits_efficiency) ** 2 < (1 - best_point_in_ellipse) ** 2:
-            print('Value of metric point_in_ellipse has improved from {} to {}'.format(best_point_in_ellipse, hits_efficiency))
-            best_point_in_ellipse = hits_efficiency
+        train(tracknet, train_loader, device, optimizer, epoch)
+        val_hits_efficiency, val_circle = validate(tracknet, validation_loader, device)
+        if (1 - val_hits_efficiency) ** 2 < (1 - best_point_in_ellipse) ** 2:
+            print('Value of metric point_in_ellipse has improved from {} to {}'.format(best_point_in_ellipse, val_hits_efficiency))
+            best_point_in_ellipse = val_hits_efficiency
         else:
             print('Value of metric point_in_ellipse did not improve. The best value is {}'.format(best_point_in_ellipse))
-        val_hits_efficiency, val_circle = validate(tracknet, validation_loader, device)
-        metrics_cb.on_epoch_end(epoch, tracknet, batch_size, device)
+        metrics_cb.on_epoch_end(epoch, tracknet, 2048, device)
         if autosave and autosave['enabled']:
             save_model(autosave, datetime, epoch, val_hits_efficiency, val_circle, tracknet)
 

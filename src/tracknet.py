@@ -23,7 +23,7 @@ class TrackNet(nn.Module):
         x = self.conv1d(x)
         x = self.batch_norm(x)
         x = self.conv1d_relu(x)
-        x = Variable(x.permute(2, 0, 1))
+        x = x.permute(2, 0, 1)
         x, hn = self.gru1(x)
         x, hn = self.gru2(x)
         x = x[x.size()[0] - 1]
